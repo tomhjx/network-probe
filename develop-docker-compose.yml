@@ -1,0 +1,15 @@
+version: '3.5'
+services:
+  develop:
+      build: ./develop
+      restart: always
+      privileged: true
+      command: ["sh", "-c", "tail -f /dev/null"]
+      environment:
+        GO111MODULE: "on"
+        GOPROXY: "https://goproxy.io"
+        CGO_ENABLED: 0
+      volumes:
+        - ./src:/work/src
+      cap_add:
+        - ALL
