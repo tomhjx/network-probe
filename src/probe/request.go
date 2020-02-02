@@ -5,6 +5,8 @@ import (
 	"os/exec"
 	"encoding/json"
 	"bytes"
+	"time"
+	"context"
 )
 
 // Request represents abstract request
@@ -24,8 +26,12 @@ func NewRequest(target string)(* Request, error)  {
 func (r *Request) Run()(Response, error) {
 	log.Println("curl ", r.target)
 	resp := Response{}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel() // The cancel should be deferred so resources are cleaned up
+
 	fm := `{"NameLookUpTime":"%{time_namelookup}","ConnectTime":"%{time_connect}","AppConnectTime":"%{time_appconnect}","RedirectTime":"%{time_redirect}","PretransferTime":"%{time_pretransfer}","StarttransferTime":"%{time_starttransfer}","TotalTime":"%{time_total}","HTTPCode":"%{http_code}"}`
-	cmd := exec.Command("curl", "-I", "-s", "-w", fm, r.target, "-o", "/dev/null")
+	cmd := exec.CommandContext(ctx, "curl", "--connect-timeout", "3", "-m", "10", "-I", "-s", "-w", fm, r.target, "-o", "/dev/null")
 	var stdout bytes.Buffer
 	cmd.Stdout = &stdout
 

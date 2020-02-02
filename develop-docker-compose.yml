@@ -9,7 +9,9 @@ services:
         GO111MODULE: "on"
         GOPROXY: "https://goproxy.io"
         CGO_ENABLED: 0
+        TARGET_SOURCE_URL: "http://test-mib-config.hk.ufileos.com/network-probe-targets"
       volumes:
         - ./src:/work/src
+        - ./bin:/work/bin
       cap_add:
         - ALL
