@@ -31,7 +31,8 @@ func (r *Request) Run()(Response, error) {
 	defer cancel() // The cancel should be deferred so resources are cleaned up
 
 	fm := `{"NameLookUpTime":"%{time_namelookup}","ConnectTime":"%{time_connect}","AppConnectTime":"%{time_appconnect}","RedirectTime":"%{time_redirect}","PretransferTime":"%{time_pretransfer}","StarttransferTime":"%{time_starttransfer}","TotalTime":"%{time_total}","HTTPCode":"%{http_code}"}`
-	cmd := exec.CommandContext(ctx, "curl", "--connect-timeout", "3", "-m", "10", "-I", "-s", "-w", fm, r.target, "-o", "/dev/null")
+	ua := "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.117 Safari/537.36"
+	cmd := exec.CommandContext(ctx, "curl", "--connect-timeout", "3", "-m", "10", "-I", "-s", "-w", fm, "-H", "user-agent:"+ua, r.target, "-o", "/dev/null")
 	var stdout bytes.Buffer
 	cmd.Stdout = &stdout
 
