@@ -5,6 +5,7 @@ import (
 	"time"
 	"os"
 	"encoding/json"
+	"strconv"
 	"github.com/tomhjx/network-probe/probe"
 	"github.com/tomhjx/network-probe/resources"
 )
@@ -99,23 +100,26 @@ func (proc *Processor) probe()  {
 }
 
 func (proc *Processor) Run()(error)  {
-
+	probeInterval, _ := strconv.ParseInt(os.Getenv("PROBE_INTERVAL_SECOND"), 10, 32)
+	if probeInterval <= 0 {
+		probeInterval = 10
+	}
 	proc.probePacket = make(chan ProbePacket)
 
-	// 定时更新探测目标
 	var err error
+	// 定时更新探测目标
 	proc.target, err = resources.NewTarget()
 	if err != nil {
 		return err
 	}
 	proc.target.AutoUpdate(os.Getenv("TARGET_SOURCE_URL"))
 	// 执行探测
-	go func() {
+	go func(interval int64) {
 		for {
 			proc.probe()
-			time.Sleep(1 * time.Second)
+			time.Sleep(time.Duration(interval) * time.Second)
 		}
-	}()
+	}(probeInterval)
 
 	// 获取探测结果
 	for {

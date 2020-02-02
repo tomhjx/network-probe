@@ -12,6 +12,6 @@ services:
         TARGET_SOURCE_URL: "http://test-mib-config.hk.ufileos.com/network-probe-targets"
       volumes:
         - ./src:/work/src
-        - ./bin:/work/bin
+        - ./produce/bin:/work/bin
       cap_add:
         - ALL
