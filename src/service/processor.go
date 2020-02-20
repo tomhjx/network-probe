@@ -1,52 +1,54 @@
 package service
 
 import (
-	"log"
-	"time"
-	"os"
 	"encoding/json"
+	"log"
+	"log/syslog"
+	"os"
 	"strconv"
+	"time"
+
 	"github.com/tomhjx/network-probe/probe"
 	"github.com/tomhjx/network-probe/resources"
 )
 
 type ProbePacket struct {
-	target string
+	target   string
 	response probe.Response
 }
 
 type Processor struct {
-	target *resources.Target
+	target      *resources.Target
 	probePacket chan ProbePacket
 }
 
-func preserve(p ProbePacket)  {
+func preserve(p ProbePacket) {
 	t := time.Now()
 
 	type outrow struct {
-		Target string `json:"tg"`
-		NameLookUpTime string `json:"nlut"`
-		ConnectTime string `json:"cnt"`
-		AppConnectTime string `json:"acnt"`
-		RedirectTime string `json:"rt"`
-		PretransferTime string `json:"pt"`
+		Target            string `json:"tg"`
+		NameLookUpTime    string `json:"nlut"`
+		ConnectTime       string `json:"cnt"`
+		AppConnectTime    string `json:"acnt"`
+		RedirectTime      string `json:"rt"`
+		PretransferTime   string `json:"pt"`
 		StarttransferTime string `json:"st"`
-		TotalTime string `json:"tt"`
-		HTTPCode string `json:"c"`
-		UnixTime int64 `json:"t"`
+		TotalTime         string `json:"tt"`
+		HTTPCode          string `json:"c"`
+		UnixTime          int64  `json:"t"`
 	}
 
 	out := &outrow{
-		Target: p.target,
-		NameLookUpTime: p.response.NameLookUpTime,
-		ConnectTime: p.response.ConnectTime,
-		AppConnectTime: p.response.AppConnectTime,
-		RedirectTime: p.response.RedirectTime,
-		PretransferTime: p.response.PretransferTime,
+		Target:            p.target,
+		NameLookUpTime:    p.response.NameLookUpTime,
+		ConnectTime:       p.response.ConnectTime,
+		AppConnectTime:    p.response.AppConnectTime,
+		RedirectTime:      p.response.RedirectTime,
+		PretransferTime:   p.response.PretransferTime,
 		StarttransferTime: p.response.StarttransferTime,
-		TotalTime: p.response.TotalTime,
-		HTTPCode: p.response.HTTPCode,
-		UnixTime: t.Unix(),
+		TotalTime:         p.response.TotalTime,
+		HTTPCode:          p.response.HTTPCode,
+		UnixTime:          t.Unix(),
 	}
 
 	c, err := json.Marshal(out)
@@ -54,29 +56,22 @@ func preserve(p ProbePacket)  {
 		log.Fatal(err)
 	}
 
-	dirpath := "/app/log/probe"
-	if _, err := os.Stat(dirpath); os.IsNotExist(err) {
-		os.MkdirAll(dirpath, 0777)
-		log.Printf("create dir %s", dirpath)
-	}
-	f, err := os.OpenFile(dirpath+"/"+t.Format("20060102")+".log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0777)
-	defer f.Close()
+	log.Println(string(c))
+	// sysLog, err := syslog.Dial("unixgram", "/dev/syslog/log.sock", syslog.LOG_LOCAL1, "netprobe")
+	sysLog, err := syslog.Dial("tcp", "rsyslog-agent:514", syslog.LOG_LOCAL1, "netprobe")
+
 	if err != nil {
 		log.Println(err)
 		return
 	}
-	log.Println(string(c))
-	if _, err := f.WriteString(string(c)+"\n"); err != nil {
-		log.Println(err)
-		return
-	}
+	sysLog.Info(string(c))
 }
 
-func NewProcessor()(* Processor)  {
+func NewProcessor() *Processor {
 	return &Processor{}
 }
 
-func (proc *Processor) probe()  {
+func (proc *Processor) probe() {
 	for _, url := range proc.target.List {
 		go func(url string) {
 			r, err := probe.NewRequest(url)
@@ -89,9 +84,9 @@ func (proc *Processor) probe()  {
 				log.Printf("request failed [%s], error %s", url, err)
 				return
 			}
-	
+
 			proc.probePacket <- ProbePacket{
-				target: url,
+				target:   url,
 				response: resp,
 			}
 			log.Printf("probePacket <- %s", url)
@@ -99,7 +94,7 @@ func (proc *Processor) probe()  {
 	}
 }
 
-func (proc *Processor) Run()(error)  {
+func (proc *Processor) Run() error {
 	probeInterval, _ := strconv.ParseInt(os.Getenv("PROBE_INTERVAL_SECOND"), 10, 32)
 	if probeInterval <= 0 {
 		probeInterval = 10
@@ -123,7 +118,7 @@ func (proc *Processor) Run()(error)  {
 
 	// 获取探测结果
 	for {
-		p := <- proc.probePacket
+		p := <-proc.probePacket
 		preserve(p)
 	}
 }

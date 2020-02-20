@@ -3,6 +3,7 @@ services:
   develop:
       build: ./develop
       restart: always
+      hostname: foo
       privileged: true
       command: ["sh", "-c", "tail -f /dev/null"]
       environment:
@@ -13,5 +14,31 @@ services:
       volumes:
         - ./src:/work/src
         - ./produce/bin:/work/bin
+        - "syslogunixsocket:/dev/syslog"
       cap_add:
         - ALL
+  develop-rsyslog-agent:
+      image: xgoteam/rsyslog:centos7
+      restart: always
+      privileged: true
+      command: ["/usr/sbin/rsyslogd", "-dn"]
+      networks:
+        default:
+          aliases:
+            - rsyslog-agent
+      volumes:
+        - "syslogunixsocket:/dev/syslog"
+        - ./etc/rsyslog-agent.conf:/etc/rsyslog.conf
+  develop-rsyslog-server:
+      image: xgoteam/rsyslog:centos7
+      restart: always
+      privileged: true
+      command: ["/usr/sbin/rsyslogd", "-dn"]
+      networks:
+        default:
+          aliases:
+            - rsyslog
+      volumes:
+        - ./etc/rsyslog-server.conf:/etc/rsyslog.conf
+volumes:
+  syslogunixsocket:

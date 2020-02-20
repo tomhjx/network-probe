@@ -21,6 +21,14 @@ docker-compose -f ./develop-docker-compose.yml run --rm develop bash -c "cd /wor
 
 ```
 
+### 打包服务的docker镜像
+
+```bash
+docker build ./produce -t tomhjx/network-probe:latest
+docker push tomhjx/network-probe:latest
+```
+
+
 ### 启动服务
 
 ```bash

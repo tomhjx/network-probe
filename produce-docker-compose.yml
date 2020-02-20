@@ -8,8 +8,21 @@ services:
       command: ["sh", "-c", "/app/bin/service"]
       environment:
         PROBE_INTERVAL_SECOND: 30
-        TARGET_SOURCE_URL: "http://test-mib-config.hk.ufileos.com/network-probe-targets"
+        TARGET_SOURCE_URL: "http://mib-config.afr-nigeria.ufileos.com/network-probe-targets"
       volumes:
         - ./log:/app/log/
       cap_add:
         - ALL
+  produce-rsyslog-agent:
+      image: xgoteam/rsyslog:centos7
+      restart: always
+      privileged: true
+      command: ["/usr/sbin/rsyslogd", "-n"]
+      networks:
+        default:
+          aliases:
+            - rsyslog-agent
+      extra_hosts:
+        - "rsyslog:0.0.0.0"
+      volumes:
+        - ./etc/rsyslog-agent.conf:/etc/rsyslog.conf
