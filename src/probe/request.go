@@ -1,12 +1,12 @@
 package probe
 
 import (
+	"bytes"
+	"context"
+	"encoding/json"
 	"log"
 	"os/exec"
-	"encoding/json"
-	"bytes"
 	"time"
-	"context"
 )
 
 // Request represents abstract request
@@ -15,7 +15,7 @@ type Request struct {
 }
 
 // NewRequest create a Request Object
-func NewRequest(target string)(* Request, error)  {
+func NewRequest(target string) (*Request, error) {
 	r := Request{
 		target: target,
 	}
@@ -23,7 +23,7 @@ func NewRequest(target string)(* Request, error)  {
 }
 
 // Run response request result
-func (r *Request) Run()(Response, error) {
+func (r *Request) Run() (Response, error) {
 	log.Println("curl ", r.target)
 	resp := Response{}
 
@@ -39,7 +39,7 @@ func (r *Request) Run()(Response, error) {
 	if err := cmd.Run(); err != nil {
 		return resp, err
 	}
-	
+
 	if err := json.Unmarshal([]byte(stdout.String()), &resp); err != nil {
 		return resp, err
 	}

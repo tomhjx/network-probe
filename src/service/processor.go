@@ -22,10 +22,11 @@ type Processor struct {
 	probePacket chan ProbePacket
 }
 
-func preserve(p ProbePacket) {
+func preserve(client string, p ProbePacket) {
 	t := time.Now()
 
 	type outrow struct {
+		Client            string `json:"cid"`
 		Target            string `json:"tg"`
 		NameLookUpTime    string `json:"nlut"`
 		ConnectTime       string `json:"cnt"`
@@ -39,6 +40,7 @@ func preserve(p ProbePacket) {
 	}
 
 	out := &outrow{
+		Client:            client,
 		Target:            p.target,
 		NameLookUpTime:    p.response.NameLookUpTime,
 		ConnectTime:       p.response.ConnectTime,
@@ -107,7 +109,7 @@ func (proc *Processor) Run() error {
 	if err != nil {
 		return err
 	}
-	proc.target.AutoUpdate(os.Getenv("TARGET_SOURCE_URL"))
+	proc.target.AutoUpdate(os.Getenv("PROBE_TARGET_SOURCE_URL"))
 	// 执行探测
 	go func(interval int64) {
 		for {
@@ -116,9 +118,11 @@ func (proc *Processor) Run() error {
 		}
 	}(probeInterval)
 
+	client := os.Getenv("PROBE_CLIENT_ID")
+
 	// 获取探测结果
 	for {
 		p := <-proc.probePacket
-		preserve(p)
+		preserve(client, p)
 	}
 }
