@@ -41,4 +41,5 @@ docker-compose -f ./produce-docker-compose.yml build && docker-compose -f ./prod
 配置方式  | 参数名                    |参数类型    | 备注
 ---------|--------------------------|----------|-----
 环境变量  | PROBE_INTERVAL_SECOND    |int       | 探测间隔，单位秒，默认为10秒
-环境变量  | TARGET_SOURCE_URL        |string    | 目标地址列表（ip、域名、url）接口地址，以换行符（\n）分隔，每1分钟从该地址获取目标列表更新到内存
+环境变量  | PROBE_CLIENT_ID    |string       | 自定义的上报端标识，用来区分是哪个节点上报的
+环境变量  | PROBE_TARGET_SOURCE_URL        |string    | 目标地址列表（ip、域名、url）接口地址，以换行符（\n）分隔，每1分钟从该地址获取目标列表更新到内存

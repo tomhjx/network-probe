@@ -9,7 +9,7 @@ services:
       environment:
         PROBE_INTERVAL_SECOND: 30
         PROBE_TARGET_SOURCE_URL: "http://mib-config.afr-nigeria.ufileos.com/network-probe-targets"
-        PROBE_CLIENT_ID: "china-guangzhou"
+        PROBE_CLIENT_ID: "China-GuangZhou"
       volumes:
         - "syslogunixsocket:/dev/syslog"
       cap_add:
