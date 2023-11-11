@@ -1,5 +1,7 @@
 # network-probe
 
+[更好的选择](https://github.com/tomhjx/cnet)
+
 ----
 
 * [ ] ip
